@@ -2,6 +2,51 @@
 
 **Use [redux-thunk](https://www.github.com/gaearon/redux-thunk) instead. Since v2.1.0 [identical functionality](https://www.github.com/gaearon/redux-thunk#injecting-a-custom-argument) can be achieved with that package.**
 
+[This article](https://medium.com/@gethylgeorge/using-socket-io-in-react-redux-app-to-handle-real-time-data-c0e734297795) that outlines an example of how to use redux-thunk, that is implemented in a Github repo, starting on [this file](https://github.com/Gethyl/RealTimeTodo/blob/master/src/js/components/Layout.js). This is for socket.io, but using web sockets directly should be similar.
+
+Summarizing, in the Component call `dispatch` with `addNewItemSocket`:
+
+    <RaisedButton
+        label="Click to add!" primary={true}
+        onTouchTap={ () => {
+            const newItem = ReactDOM.findDOMNode(this.refs.newTodo.input).value
+            newItem === "" ?  alert("Item shouldn't be blank")
+                           :  dispatch(addNewItemSocket(socket,items.size,newItem)) 
+                            {/*: dispatch(addNewItem(items.size,newItem))*/}
+            ReactDOM.findDOMNode(this.refs.newTodo.input).value = ""
+          }
+        }
+    />
+
+In the actions file, declare `addNewItemSocket` as:
+
+    export const addNewItemSocket = (socket,id,item) => {
+        return (dispatch) => {
+            let postData = {
+                    id:id+1,
+                    item:item,
+                    completed:false
+                 }
+            socket.emit('addItem',postData)     
+        }   
+    }
+
+To handle incoming messages from the socket, in the constructor of the component:
+
+    socket.on('itemAdded',(res)=>{
+       console.dir(res)
+       dispatch(AddItem(res))
+    })
+
+And in the actoins file, declare `AddItem` as:
+
+    export const AddItem = (data) => ({
+        type: "ADD_ITEM",
+        item: data.item,
+        itemId:data.id,
+        completed:data.completed
+    })
+
 ---
 
 [![npm version](https://img.shields.io/npm/v/redux-ws.svg?style=flat-square)](https://www.npmjs.com/package/redux-ws)
